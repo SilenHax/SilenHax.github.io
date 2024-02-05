@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /writeups
+permalink: /writeups.md
 ---
 
 <h1 id="200">200</h1>
