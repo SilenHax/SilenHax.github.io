@@ -32,6 +32,9 @@ listen_for_clients_preferred_style: true
 theme: minima
 plugins:
   - jekyll-feed
+header_pages:
+  - index.md
+  - writeups.md
 
 # Exclude from processing.
 # The following items will not be processed, by default.
