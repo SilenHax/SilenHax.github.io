@@ -1,3 +1,20 @@
+# Example Site settings
+
+#google_analytics: UA-NNNNNNNN-N
+remote_theme: b2a3e8/jekyll-theme-console
+header_pages:
+  - index.md
+  - writeups.md
+
+#footer: 'follow us on <a href="https://twitter.com/">twitter</a>'
+
+style: dark
+#listen_for_clients_preferred_style: true # true or false (default)
+
+plugins:
+  - jekyll-seo-tag
+
+
 # Welcome to Jekyll!
 #
 # This config file is meant for settings that affect your whole blog, values
@@ -17,25 +34,23 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-
-remote_theme: b2a3e8/jekyll-theme-console
-title: no idea tf am doin
-email: your-email@example.com
-description: >- # this means to ignore newlines until "baseurl:"
-  No Idea tf am doin
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://www.silenhax.pl" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: Anonymous
-github_username:  SilenHax
-header_pages:
-  - /index.md
-  - /writeups.md
-listen_for_clients_preferred_style: false
-style: dark
-# Build settings
-theme: minima
-plugins:
-  - jekyll-feed
+#title: no idea tf am doin
+#email: your-email@example.com
+#description: >- # this means to ignore newlines until "baseurl:"
+#  No Idea tf am doin
+#baseurl: "" # the subpath of your site, e.g. /blog
+#url: "https://www.silenhax.pl" # the base hostname & protocol for your site, e.g. http://example.com
+#twitter_username: Anonymous
+#github_username:  SilenHax
+#header_pages:
+#  - /index.md
+#  - /writeups.md
+#listen_for_clients_preferred_style: false
+#style: dark
+## Build settings
+#theme: minima
+#plugins:
+#  - jekyll-feed##
 
 
 # Exclude from processing.
