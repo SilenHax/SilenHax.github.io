@@ -4,11 +4,7 @@
 remote_theme: b2a3e8/jekyll-theme-console
 header_pages:
   - index.md
-<<<<<<< HEAD
   - writeups.md
-=======
-  - /writeups
->>>>>>> bfc7b7c654174128004dba337818395b61e97d8d
 
 #footer: 'follow us on <a href="https://twitter.com/">twitter</a>'
 

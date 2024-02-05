@@ -1,6 +1,6 @@
 ---
 title: /writeups
-layout: default
+layout: page
 permalink: /writeups
 ---
 
