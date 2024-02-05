@@ -1,3 +1,8 @@
+---
+title: /
+layout: home
+permalink: /
+---
 
 <h1 id="200">200</h1>
 <p> Congratulation! You made it to Silen's blog about his Pentesting journey. </p>

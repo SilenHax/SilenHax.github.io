@@ -1,3 +1,7 @@
+---
+layout: default
+permalink: /writeups
+---
 
 <h1 id="200">200</h1>
 
