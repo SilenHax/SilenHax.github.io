@@ -27,14 +27,16 @@ baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://www.silenhax.pl" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: Anonymous
 github_username:  SilenHax
-listen_for_clients_preferred_style: true
+header_pages:
+  - /index.md
+  - /writeups.md
+listen_for_clients_preferred_style: false
+style: dark
 # Build settings
 theme: minima
 plugins:
   - jekyll-feed
-header_pages:
-  - index.md
-  - writeups.md
+
 
 # Exclude from processing.
 # The following items will not be processed, by default.
