@@ -1,5 +1,5 @@
 ---
-title: /home @Silen
+title: /home
 layout: home
 permalink: /
 ---
