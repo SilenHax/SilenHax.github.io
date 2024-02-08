@@ -21,7 +21,7 @@ In order to get the blog to work with AWS, you'll need to add blog.thm to your /
 Credit to Sq00ky for the root privesc idea ;) 
 </pre></td></tr></tbody></table></code></pre></div></div>
 
-#Enumeration
+<h1>Enumeration</h1>
 <p>Obviously first thing I did was an nmap scan:</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -70,7 +70,7 @@ Credit to Sq00ky for the root privesc idea ;)
 45
 </pre></td><td class="rouge-code"><pre>$ nmap -T4 -A -sV blog.thm
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-02-04 15:42 CET
-Nmap scan report for blog.thm <ip>
+Nmap scan report for blog.thm < ip >
 Host is up (0.069s latency).
 Not shown: 995 closed tcp ports (conn-refused)
 PORT     STATE    SERVICE     VERSION
@@ -83,7 +83,7 @@ PORT     STATE    SERVICE     VERSION
 |_http-generator: WordPress 5.0
 | http-robots.txt: 1 disallowed entry 
 |_/wp-admin/
-|_http-title: Billy Joel&#039;s IT Blog &#8211; The IT blog
+|_http-title: Billy Joels IT Blog The IT blog
 |_http-server-header: Apache/2.4.29 (Ubuntu)
 139/tcp  open     netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
 445/tcp  open     netbios-ssn Samba smbd 4.7.6-Ubuntu (workgroup: WORKGROUP)
@@ -91,7 +91,7 @@ PORT     STATE    SERVICE     VERSION
 Service Info: Host: BLOG; OS: Linux; CPE: cpe:/o:linux:linux_kernel
  
 Host script results:
-|_nbstat: NetBIOS name: BLOG, NetBIOS user: <unknown>, NetBIOS MAC: <unknown> (unknown)
+|_nbstat: NetBIOS name: BLOG, NetBIOS user: , NetBIOS MAC:(unknown)
 | smb2-security-mode: 
 |   3:1:1: 
 |_    Message signing enabled but not required
@@ -111,12 +111,13 @@ Host script results:
 |   challenge_response: supported
 |_  message_signing: disabled (dangerous, but default)
  
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ 
 Nmap done: 1 IP address (1 host up) scanned in 19.93 seconds 
 </pre></td></tr></tbody></table></code></pre></div></div>
+
 I personally didn't even try to enumerate smb further, luckily, I saw in other writeups that it's a honeypot
 <p>However, we can see, that on port 80 there's an http server<p>
-##http
+<h1>http</h1>
 <img src="/images/blog_main.png" alt="Wordpress Home site" />
 We can see, that it is a wordpress blog, so I run wpscan (I removed boring stuff): 
 
@@ -217,7 +218,7 @@ As you can see we found valid combination.
 <p>I mentioned before CVE-2019-8943, it turns out, there is a metasploit module which we can use called "exploit/multi/http/wp_crop_rce"</p>
 After setting up every option and running exploit, we gain a shell!
 
-## PrivEsc
+<h1>PrivEsc</h1>
 I saw that there is nicer way (envolving reverse engineering) to do privelege escalation than I did, but I will show my simple way using metasploit modules.
 <p>First module I run was "post/multi/manage/shell_to_meterpreter", which made it possible to use exploit suggester (post/multi/recon/local_exploit_suggester)<p/>
 <p>Suggester tells us, that the system is vulnerable to CVE-2021-4032</p>
@@ -230,6 +231,25 @@ I saw that there is nicer way (envolving reverse engineering) to do privelege es
 7
 8
 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
 </pre></td><td class="rouge-code"><pre>msf6 post(multi/recon/local_exploit_suggester) > use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec 
 [*] No payload configured, defaulting to linux/x64/meterpreter/reverse_tcp
 
