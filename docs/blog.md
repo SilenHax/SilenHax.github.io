@@ -1,6 +1,6 @@
 ---
 title: /writeups/Blog
-layout: page
+layout: post
 permalink: /writeups/Blog
 ---
 Writeup of THM Machine called <a href="https://tryhackme.com/room/blog">"Blog"</a>
@@ -117,8 +117,10 @@ Nmap done: 1 IP address (1 host up) scanned in 19.93 seconds
 
 I personally didn't even try to enumerate smb further, luckily, I saw in other writeups that it's a honeypot
 <p>However, we can see, that on port 80 there's an http server<p>
-<h1>http</h1>
+<h1>HTTP</h1>
+
 <img src="/images/blog_main.png" alt="Wordpress Home site" />
+
 We can see, that it is a wordpress blog, so I run wpscan (I removed boring stuff): 
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
@@ -194,6 +196,7 @@ Interesting Finding(s):
  |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)
  |  Login Error Messages (Aggressive Detection)
 </pre></td></tr></tbody></table></code></pre></div></div>
+
 <p>First of all, it tells us that the wordpress is running on version 5.0. Quick google search gets us CVE-2019-8943 to which, we need user login and password, but wpscan also helps us there as it gives us two usernames - "kwheel" and "bjoel". I decided to bruteforce them because I didn't have any other idea. Also, kwheel seemed to probably care less about her password than her son, so I tried to brute force her user first.</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -215,7 +218,7 @@ Trying kwheel / <oz#mJ@y8C$vq6@> Time: 00:00:46 <                               
  | Username: kwheel, Password: <oz#mJ@y8C$vq6@>
 </pre></td></tr></tbody></table></code></pre></div></div>
 As you can see we found valid combination. 
-<p>I mentioned before CVE-2019-8943, it turns out, there is a metasploit module which we can use called "exploit/multi/http/wp_crop_rce"</p>
+<p>I mentioned CVE-2019-8943 before, it turns out, there is a metasploit module which we can use called "exploit/multi/http/wp_crop_rce"</p>
 After setting up every option and running exploit, we gain a shell!
 
 <h1>PrivEsc</h1>
