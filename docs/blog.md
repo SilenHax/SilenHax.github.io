@@ -22,7 +22,7 @@ Credit to Sq00ky for the root privesc idea ;)
 </pre></td></tr></tbody></table></code></pre></div></div>
 
 <h1>Enumeration</h1>
-<p>Obviously first thing I did was an nmap scan:</p>
+<p>Obviously the first thing I did was an nmap scan:</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -121,6 +121,7 @@ I personally didn't even try to enumerate smb further, luckily, I saw in other w
 
 <img src="/images/BlogMain.png" alt="Wordpress Home site" />
 
+
 We can see, that it is a wordpress blog, so I run wpscan (I removed boring stuff): 
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
@@ -197,6 +198,7 @@ Interesting Finding(s):
  |  Login Error Messages (Aggressive Detection)
 </pre></td></tr></tbody></table></code></pre></div></div>
 
+
 <p>First of all, it tells us that the wordpress is running on version 5.0. Quick google search gets us CVE-2019-8943 to which, we need user login and password, but wpscan also helps us there as it gives us two usernames - "kwheel" and "bjoel". I decided to bruteforce them because I didn't have any other idea. Also, kwheel seemed to probably care less about her password than her son, so I tried to brute force her user first.</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -218,12 +220,13 @@ Trying kwheel / <oz#mJ@y8C$vq6@> Time: 00:00:46 <                               
  | Username: kwheel, Password: <oz#mJ@y8C$vq6@>
 </pre></td></tr></tbody></table></code></pre></div></div>
 As you can see we found valid combination. 
-<p>I mentioned CVE-2019-8943 before, it turns out, there is a metasploit module which we can use called "exploit/multi/http/wp_crop_rce"</p>
-After setting up every option and running exploit, we gain a shell!
+
+<p>I mentioned CVE-2019-8943 before, it turns out, there is a metasploit module which we can use called "exploit/multi/http/wp_crop_rce", after setting up every option and running exploit, we gain a shell!</p>
 
 <h1>PrivEsc</h1>
-I saw that there is nicer way (envolving reverse engineering) to do privelege escalation than I did, but I will show my simple way using metasploit modules.
-<p>First module I run was "post/multi/manage/shell_to_meterpreter", which made it possible to use exploit suggester (post/multi/recon/local_exploit_suggester)<p/>
+I saw a nicer way (envolving reverse engineering) to do privelege escalation than I had done, but I will show my simple way using metasploit modules.
+
+<p>The first module I run was "post/multi/manage/shell_to_meterpreter", which made it possible to use exploit suggester (post/multi/recon/local_exploit_suggester)<p/>
 <p>Suggester tells us, that the system is vulnerable to CVE-2021-4032</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -283,7 +286,7 @@ whoami
 root
 </pre></td></tr></tbody></table></code></pre></div></div>
 <p>After running which, we gain root access!</p>
-<p>Now we can look for flag that is hidden in "/media/usb" and move to the next room :D</p>
+<p>Now we can look for flags one of which is hidden in "/media/usb", and move to the next room :D</p>
 
 
 Thank you for reading
