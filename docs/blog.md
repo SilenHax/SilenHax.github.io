@@ -119,7 +119,7 @@ I personally didn't even try to enumerate smb further, luckily, I saw in other w
 <p>However, we can see, that on port 80 there's an http server<p>
 <h1>HTTP</h1>
 
-<img src="/images/blog_main.png" alt="Wordpress Home site" />
+<img src="/images/blog_main2.png" alt="Wordpress Home site" />
 
 We can see, that it is a wordpress blog, so I run wpscan (I removed boring stuff): 
 
