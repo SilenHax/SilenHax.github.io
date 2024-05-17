@@ -1,7 +1,7 @@
 ---
 title: /writeups/CMesS
 layout: post
-permalink: /writeups/CMesS
+permalink: /writeups/CmesS
 ---
 Writeup of THM Machine called <a href="https://tryhackme.com/r/room/cmess">"CMesS"</a>
 
