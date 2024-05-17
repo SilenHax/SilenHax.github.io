@@ -14,7 +14,7 @@ We can find interesting dev.cmess.thm.
 
 <img src="/images/DevCmess.png" alt="dev.cmess.thm" />
 
-And there's obviously an email and a password that we can use to login on /admin found earlier
+And there's obviously an email and a password that we can use to log in on /admin found earlier
 
 After we log in, the admin page greets us with the version of the CMS
 
