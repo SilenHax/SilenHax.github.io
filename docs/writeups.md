@@ -8,3 +8,4 @@ permalink: /writeups
 
 <p>Here are my writeups, feel free to use them</p>
 -<a href="/writeups/Blog">Blog</a>
+-<a href="/writeups/CmesS">CmesS</a>
