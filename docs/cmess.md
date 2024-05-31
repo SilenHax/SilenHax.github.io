@@ -27,7 +27,7 @@ You can get the exploit [here](https://www.exploit-db.com/exploits/51569)
 
 The exploit obviously works and gives us a www-data shell (Remember to start the listener before running the exploit! `nc -lvnp <port>')
 
-#PrivEsc
+# PrivEsc
 
 I think that the PrivEsc is actually the hardest part of this box. 
 Running both Linpeas and LinEnum gives us 2 interesting findings.
