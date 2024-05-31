@@ -35,7 +35,7 @@ It looks like the script deletes some files and then logs everything to the `rem
 
 ![Logs](/images/AnonymousLogs.png) 
 
-Here we can clearly see that every minute or so, the file appends with the message from the `clean.sh`
+Here we can clearly see that every minute or so, the file is being appended with the message from the `clean.sh`
 
 So I thought that the obvious way to exploit it, is to put some malicious code to the clean.sh or to replace it with our own file.
 But it turned out that we weren't allowed to change permissions of the files uploaded by us, so I began to look for any way to edit the already existing file.
@@ -45,6 +45,7 @@ Using tool called `curlftpfs`. I ran this command, that mounts the FTP share to 
 ```bash
 curlftpfs Anonymous@10.10.76.207 /home/silen/Desktop/THM/Anonymous/ftp 
 ```
+
 And from there I simply edited the `clean.sh`, that it will connect to my listener, and give me an interactive bash shell. 
 
 ![Editing the script](/images/AnonymousScriptEdit.png)
@@ -59,7 +60,7 @@ Now, there is only the PrivEsc left.
 
 # PrivEsc
 
-After quick enumeration, I found interesting SUID.
+After quick enumeration, I found this interesting SUID binary.
 
 ![SUID](/images/AnonymousSUID.png)
 
