@@ -46,7 +46,7 @@ Using the tool called `curlftpfs`. I ran this command, that mounts the FTP share
 curlftpfs Anonymous@10.10.76.207 /home/silen/Desktop/THM/Anonymous/ftp 
 ```
 
-And from there I simply edited the `clean.sh`, that it will connect to my listener, and give me an interactive bash shell. 
+And from there I simply edited the `clean.sh`, that it will connect to my listener, and give me a bash shell. 
 
 ![Editing the script](/images/AnonymousScriptEdit.png)
 
