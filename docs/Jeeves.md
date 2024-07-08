@@ -101,7 +101,7 @@ Nmap done: 1 IP address (1 host up) scanned in 143.80 seconds
 
 The http page on port 80 is just a fake askJeeves page and there's nothing to be found, even after dirbusting.
 
-The next thing I checked was the 50000 port. THe initial page looks like this:
+The next thing I checked was the 50000 port. The initial page looks like this:
 
 ![50000 page](/images/Jeeves50000page.png)
 
@@ -138,6 +138,6 @@ Unfortunately it's not the end of this box, finding the root flag was challengin
 To find the flag I had to use Alternate Data Streams, since the root.txt on Administrator's Desktop was fake.
 
 To find the real flag you have to use command `dir /R` in the Administrator's Desktop, from there you can type it out using
-`more < 'full file's path from dir /R`
+`more < 'full file's path from dir /R'`
 
 And that's all, thank you for reading!
