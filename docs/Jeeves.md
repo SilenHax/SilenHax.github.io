@@ -52,6 +52,7 @@ I started with the nmap scan:
 41
 42
 43
+44
 </pre></td><td class="rouge-code"><pre>$ nmap -sS -A -T4 -p- 10.10.10.63
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-07-08 12:03 CEST
 Nmap scan report for 10.10.10.63
@@ -116,7 +117,7 @@ So, I used that to get my foothold
 
 The script that I used, was taken from [this](https://www.revshells.com/) awesome site.
 
-I recently found cool shell handler called [penelope.py](https://github.com/brightio/penelope) and I think it's really usefull especially with linux shells since it automatically upgrades them to fully interactive ones!
+I recently found cool shell handler called [penelope.py](https://github.com/brightio/penelope) and I think it's really useful especially with linux shells since it automatically upgrades them to fully interactive ones!
 
 ![RevShell](/images/JeevesPenelope.png)
 
