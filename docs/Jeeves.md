@@ -53,6 +53,7 @@ I started with the nmap scan:
 42
 43
 44
+45
 </pre></td><td class="rouge-code"><pre>$ nmap -sS -A -T4 -p- 10.10.10.63
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-07-08 12:03 CEST
 Nmap scan report for 10.10.10.63
