@@ -10,3 +10,4 @@ permalink: /writeups
 -<a href="/writeups/Blog">Blog - THM</a>
 -<a href="/writeups/CMesS">CMesS - THM</a>
 -<a href="/writeups/Anonymous">Anonymous - THM</a>
+-<a href="/writeups/Jeeves">Jeeves - HTB</a>
