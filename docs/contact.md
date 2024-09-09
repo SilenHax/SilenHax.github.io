@@ -1,7 +1,7 @@
 ---
 layout: page
-title: /Contact
-permalink: /Contact
+title: /contact
+permalink: /contact
 ---
 
 You can find me under the nickname "Silen" or "Silen37".
