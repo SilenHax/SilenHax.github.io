@@ -6,6 +6,7 @@ header_pages:
   - index.md
   - writeups.md
   - contact.md
+  - certs
 
 #footer: 'follow us on <a href="https://twitter.com/">twitter</a>'
 
