@@ -287,7 +287,7 @@ Process 5384 created.
 Channel 1 created.
 whoami
 root
-</div></div></pre></code></td></tbody></table>
+
 <p>After running which, we gain root access!</p>
 <p>Now we can look for flags one of which is hidden in "/media/usb", and move to the next room :D</p>
 
