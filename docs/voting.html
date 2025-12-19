@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Głosowanie - Konkurs Piosenki</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-3 drop-shadow-lg">🎤 Konkurs Piosenki</h1>
+            <p class="text-xl text-purple-200">Oddaj swój głos na ulubionego uczestnika!</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-400"></div>
+            <p class="text-white mt-4 text-lg">Sprawdzam kod głosowania...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="hidden">
+            <div class="bg-red-500/20 border-2 border-red-400 rounded-2xl p-8 backdrop-blur-sm">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">❌</div>
+                    <h2 class="text-3xl font-bold text-white mb-3" id="error-title">Błąd</h2>
+                    <p class="text-red-200 text-lg" id="error-message"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voting State -->
+        <div id="voting" class="hidden">
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
+                <h2 class="text-3xl font-bold text-white mb-6 text-center">Wybierz swojego faworyta:</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="candidates"></div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="success" class="hidden">
+            <div class="bg-green-500/20 border-2 border-green-400 rounded-2xl p-8 backdrop-blur-sm">
+                <div class="text-center">
+                    <div class="text-6xl mb-4 animate-bounce">🎉</div>
+                    <h2 class="text-3xl font-bold text-white mb-3">Dziękujemy za głos!</h2>
+                    <p class="text-green-200 text-lg mb-4">Twój głos został zapisany na:</p>
+                    <div class="bg-white/20 rounded-xl p-4 inline-block">
+                        <p class="text-2xl font-bold text-white" id="voted-candidate"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konfiguracja Supabase - ZASTĄP SWOIMI DANYMI
+        const SUPABASE_URL = 'https://sbcqfgackqadypynxuou.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiY3FmZ2Fja3FhZHlweW54dW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMjIwODAsImV4cCI6MjA4MTY5ODA4MH0.dIFe_sQf--QeDIjValBb3-xne-RYUlqRDs6SKIehhhQ';
+
+        // Inicjalizacja Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Lista kandydatów
+        const candidates = [
+            { id: 1, name: 'Anna Kowalska', song: '"Światło w ciemności"' },
+            { id: 2, name: 'Piotr Nowak', song: '"Taniec z gwiazdami"' },
+            { id: 3, name: 'Maria Wiśniewska', song: '"Głos serca"' },
+            { id: 4, name: 'Jan Lewandowski', song: '"Droga do marzeń"' },
+            { id: 5, name: 'Katarzyna Kamińska', song: '"Melodia życia"' },
+            { id: 6, name: 'Michał Zieliński', song: '"Rytm uczuć"' },
+            { id: 7, name: 'Agnieszka Szymańska', song: '"Dźwięki wolności"' },
+            { id: 8, name: 'Tomasz Woźniak', song: '"Harmonia duszy"' },
+            { id: 9, name: 'Magdalena Dąbrowska', song: '"Echo przeszłości"' },
+            { id: 10, name: 'Paweł Kozłowski', song: '"Symfonia nadziei"' }
+        ];
+
+        // Elementy DOM
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const votingEl = document.getElementById('voting');
+        const successEl = document.getElementById('success');
+        const candidatesEl = document.getElementById('candidates');
+
+        // Pobierz token z URL
+        function getTokenFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('token');
+        }
+
+        // Walidacja choiceId
+        function isValidChoiceId(choiceId) {
+            return Number.isInteger(choiceId) && choiceId >= 1 && choiceId <= 10;
+        }
+
+        // Pokaż błąd
+        function showError(title, message) {
+            loadingEl.classList.add('hidden');
+            votingEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            document.getElementById('error-title').textContent = title;
+            document.getElementById('error-message').textContent = message;
+        }
+
+        // Pokaż stronę głosowania
+        function showVoting() {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+            votingEl.classList.remove('hidden');
+        }
+
+        // Pokaż sukces
+        function showSuccess(candidateName) {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+            votingEl.classList.add('hidden');
+            successEl.classList.remove('hidden');
+            document.getElementById('voted-candidate').textContent = candidateName;
+        }
+
+        // Sprawdź token w bazie
+        async function checkToken(token) {
+            try {
+                const { data, error } = await supabase
+                    .from('VotingTokens')
+                    .select('*')
+                    .eq('token', token)
+                    .single();
+
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        showError('Nieprawidłowy kod', 'Podany kod głosowania nie istnieje.');
+                        return null;
+                    }
+                    throw error;
+                }
+
+                if (data.has_voted) {
+                    showError('Kod już wykorzystany', 'Ten kod został już użyty do głosowania.');
+                    return null;
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Błąd sprawdzania tokenu:', error);
+                showError('Błąd', 'Wystąpił błąd podczas sprawdzania kodu. Spróbuj ponownie.');
+                return null;
+            }
+        }
+
+        // Zagłosuj
+        async function vote(token, choiceId) {
+            // Walidacja lokalna
+            if (!isValidChoiceId(choiceId)) {
+                showError('Błąd', 'Nieprawidłowy wybór kandydata.');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('VotingTokens')
+                    .update({ 
+                        has_voted: true, 
+                        choiceId: choiceId 
+                    })
+                    .eq('token', token)
+                    .eq('has_voted', false)
+                    .select()
+                    .single();
+
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        showError('Kod już wykorzystany', 'Ten kod został już użyty do głosowania.');
+                        return;
+                    }
+                    throw error;
+                }
+
+                const candidate = candidates.find(c => c.id === choiceId);
+                showSuccess(`${candidate.name} - ${candidate.song}`);
+            } catch (error) {
+                console.error('Błąd głosowania:', error);
+                showError('Błąd', 'Wystąpił błąd podczas zapisywania głosu. Spróbuj ponownie.');
+            }
+        }
+
+        // Renderuj kandydatów
+        function renderCandidates(token) {
+            candidatesEl.innerHTML = candidates.map(candidate => `
+                <button 
+                    onclick="handleVote('${token}', ${candidate.id})"
+                    class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 
+                           text-white font-bold py-6 px-6 rounded-xl shadow-lg 
+                           transform transition-all duration-200 hover:scale-105 hover:shadow-2xl
+                           active:scale-95 text-left"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="text-4xl font-bold bg-white/20 rounded-full w-14 h-14 flex items-center justify-center">
+                            ${candidate.id}
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold">${candidate.name}</div>
+                            <div class="text-purple-100 text-sm">${candidate.song}</div>
+                        </div>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        // Obsługa głosowania
+        window.handleVote = async function(token, choiceId) {
+            // Zablokuj przyciski
+            const buttons = candidatesEl.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+
+            await vote(token, choiceId);
+        };
+
+        // Inicjalizacja
+        async function init() {
+            const token = getTokenFromURL();
+
+            if (!token) {
+                showError('Brak kodu', 'Nie podano kodu głosowania w adresie URL. Sprawdź link i spróbuj ponownie.');
+                return;
+            }
+
+            const tokenData = await checkToken(token);
+            
+            if (tokenData) {
+                renderCandidates(token);
+                showVoting();
+            }
+        }
+
+        // Uruchom przy załadowaniu strony
+        init();
+    </script>
+</body>
+</html>
