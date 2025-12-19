@@ -6,6 +6,16 @@
     <title>Głosowanie - Konkurs Piosenki</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+/* Jeśli nie używasz pluginu Tailwind line-clamp, dodaj to ręcznie */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
+
 </head>
 <body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -36,7 +46,7 @@
         <div id="voting" class="hidden">
             <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
                 <h2 class="text-3xl font-bold text-white mb-6 text-center">Wybierz swojego faworyta:</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="candidates"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch" id="candidates"></div>
             </div>
         </div>
 
@@ -60,11 +70,6 @@
         const SUPABASE_URL = 'https://sbcqfgackqadypynxuou.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiY3FmZ2Fja3FhZHlweW54dW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMjIwODAsImV4cCI6MjA4MTY5ODA4MH0.dIFe_sQf--QeDIjValBb3-xne-RYUlqRDs6SKIehhhQ';
 
-        // Sprawdź czy Supabase jest skonfigurowany
-        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-            console.error('❌ BŁĄD: Musisz skonfigurować SUPABASE_URL i SUPABASE_ANON_KEY!');
-            console.log('📝 Znajdź te wartości w swoim projekcie Supabase w Settings > API');
-        }
 
         // Funkcja pomocnicza do tworzenia klienta z custom headers
         function getSupabaseClient(token) {
@@ -79,16 +84,16 @@
 
         // Lista kandydatów
         const candidates = [
-            { id: 1, name: 'Anna Kowalska', song: '"Światło w ciemności"' },
-            { id: 2, name: 'Piotr Nowak', song: '"Taniec z gwiazdami"' },
-            { id: 3, name: 'Maria Wiśniewska', song: '"Głos serca"' },
-            { id: 4, name: 'Jan Lewandowski', song: '"Droga do marzeń"' },
-            { id: 5, name: 'Katarzyna Kamińska', song: '"Melodia życia"' },
-            { id: 6, name: 'Michał Zieliński', song: '"Rytm uczuć"' },
-            { id: 7, name: 'Agnieszka Szymańska', song: '"Dźwięki wolności"' },
-            { id: 8, name: 'Tomasz Woźniak', song: '"Harmonia duszy"' },
-            { id: 9, name: 'Magdalena Dąbrowska', song: '"Echo przeszłości"' },
-            { id: 10, name: 'Paweł Kozłowski', song: '"Symfonia nadziei"' }
+            { id: 1, name: 'Maja Świercz', song: '"Sway" - Michael Buble' },
+            { id: 2, name: 'Katarzyna Swat', song: '"Wonderwall" - Oasis' },
+            { id: 3, name: 'Szymon Płuciennik', song: '"Can\'t catch me now" - Olivia Rodrigo' },
+            { id: 4, name: 'Zuzanna Trochim', song: '"Everywhere, everything" - Noah Kahan' },
+            { id: 5, name: 'Wojtek Ziółek, Ala Lizanowicz', song: '"Creep" - Radiohead' },
+            { id: 6, name: 'Maja Głuszcz, Nadia Chylak', song: '"Stitches" - Shawn Mendes' },
+            { id: 7, name: 'Marta Frączek', song: '"My heart will go on" - Celine Dion' },
+            { id: 8, name: 'Michał Kamiński, Igor Kwintal, Adam Pyzara, Amelia Olesik', song: '"We will rock you" - Queen' },
+            { id: 9, name: 'Kacper Chylicki', song: '"Die with a smile" - Lady Gaga, Bruno Mars' },
+            { id: 10, name: 'Bartek Borowiecki z zespołem', song: '"Where is my mind?" - Pixies' }
         ];
 
         // Elementy DOM
@@ -222,26 +227,36 @@
 
         // Renderuj kandydatów
         function renderCandidates(token) {
-            candidatesEl.innerHTML = candidates.map(candidate => `
-                <button 
-                    onclick="handleVote('${token}', ${candidate.id})"
-                    class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 
-                           text-white font-bold py-6 px-6 rounded-xl shadow-lg 
-                           transform transition-all duration-200 hover:scale-105 hover:shadow-2xl
-                           active:scale-95 text-left"
-                >
-                    <div class="flex items-center gap-4">
-                        <div class="text-4xl font-bold bg-white/20 rounded-full w-14 h-14 flex items-center justify-center">
-                            ${candidate.id}
-                        </div>
-                        <div>
-                            <div class="text-xl font-bold">${candidate.name}</div>
-                            <div class="text-purple-100 text-sm">${candidate.song}</div>
-                        </div>
+    candidatesEl.innerHTML = candidates.map(candidate => `
+        <button 
+            onclick="handleVote('${token}', ${candidate.id})"
+            class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 
+                   text-white font-bold px-6 py-6 rounded-xl shadow-lg 
+                   transform transition-all duration-200 hover:scale-105 hover:shadow-2xl
+                   active:scale-95 text-left h-full"
+        >
+            <div class="flex items-center gap-4 w-full h-full">
+                <!-- numer -->
+                <div class="text-4xl font-bold bg-white/20 rounded-full w-14 h-14 
+                            flex items-center justify-center flex-shrink-0">
+                    ${candidate.id}
+                </div>
+
+                <!-- tekst -->
+                <div class="min-w-0">
+                    <div class="text-xl font-bold leading-snug">
+                        ${candidate.name}
                     </div>
-                </button>
-            `).join('');
-        }
+                    <div class="text-purple-100 text-sm leading-snug mt-1">
+                        ${candidate.song}
+                    </div>
+                </div>
+            </div>
+        </button>
+    `).join('');
+}
+
+
 
         // Obsługa głosowania
         window.handleVote = async function(token, choiceId) {
