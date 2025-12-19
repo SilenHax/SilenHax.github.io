@@ -60,8 +60,22 @@
         const SUPABASE_URL = 'https://sbcqfgackqadypynxuou.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiY3FmZ2Fja3FhZHlweW54dW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMjIwODAsImV4cCI6MjA4MTY5ODA4MH0.dIFe_sQf--QeDIjValBb3-xne-RYUlqRDs6SKIehhhQ';
 
-        // Inicjalizacja Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Sprawdź czy Supabase jest skonfigurowany
+        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+            console.error('❌ BŁĄD: Musisz skonfigurować SUPABASE_URL i SUPABASE_ANON_KEY!');
+            console.log('📝 Znajdź te wartości w swoim projekcie Supabase w Settings > API');
+        }
+
+        // Funkcja pomocnicza do tworzenia klienta z custom headers
+        function getSupabaseClient(token) {
+            return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                global: {
+                    headers: {
+                        'x-voting-token': token
+                    }
+                }
+            });
+        }
 
         // Lista kandydatów
         const candidates = [
@@ -125,19 +139,28 @@
         // Sprawdź token w bazie
         async function checkToken(token) {
             try {
-                const { data, error } = await supabase
+                console.log('🔍 Sprawdzam token:', token);
+                
+                const client = getSupabaseClient(token);
+                const { data, error } = await client
                     .from('VotingTokens')
                     .select('*')
                     .eq('token', token)
                     .single();
 
+                console.log('📊 Odpowiedź z Supabase:', { data, error });
+
                 if (error) {
+                    console.error('❌ Błąd Supabase:', error);
                     if (error.code === 'PGRST116') {
                         showError('Nieprawidłowy kod', 'Podany kod głosowania nie istnieje.');
                         return null;
                     }
-                    throw error;
+                    showError('Błąd połączenia', `Błąd: ${error.message}. Sprawdź konfigurację Supabase i RLS.`);
+                    return null;
                 }
+
+                console.log('✅ Dane tokenu:', data);
 
                 if (data.has_voted) {
                     showError('Kod już wykorzystany', 'Ten kod został już użyty do głosowania.');
@@ -146,8 +169,8 @@
 
                 return data;
             } catch (error) {
-                console.error('Błąd sprawdzania tokenu:', error);
-                showError('Błąd', 'Wystąpił błąd podczas sprawdzania kodu. Spróbuj ponownie.');
+                console.error('❌ Błąd sprawdzania tokenu:', error);
+                showError('Błąd', `Wystąpił błąd: ${error.message}`);
                 return null;
             }
         }
@@ -161,7 +184,10 @@
             }
 
             try {
-                const { data, error } = await supabase
+                console.log('🗳️ Głosuję na kandydata:', choiceId);
+                
+                const client = getSupabaseClient(token);
+                const { data, error } = await client
                     .from('VotingTokens')
                     .update({ 
                         has_voted: true, 
@@ -172,7 +198,12 @@
                     .select()
                     .single();
 
+                console.log('📊 Wynik głosowania:', { data, error });
+
+                console.log('📊 Wynik głosowania:', { data, error });
+
                 if (error) {
+                    console.error('❌ Błąd głosowania:', error);
                     if (error.code === 'PGRST116') {
                         showError('Kod już wykorzystany', 'Ten kod został już użyty do głosowania.');
                         return;
@@ -180,11 +211,12 @@
                     throw error;
                 }
 
+                console.log('✅ Głos zapisany pomyślnie!');
                 const candidate = candidates.find(c => c.id === choiceId);
                 showSuccess(`${candidate.name} - ${candidate.song}`);
             } catch (error) {
-                console.error('Błąd głosowania:', error);
-                showError('Błąd', 'Wystąpił błąd podczas zapisywania głosu. Spróbuj ponownie.');
+                console.error('❌ Błąd zapisu głosu:', error);
+                showError('Błąd', `Wystąpił błąd podczas zapisywania głosu: ${error.message}`);
             }
         }
 
@@ -225,7 +257,9 @@
 
         // Inicjalizacja
         async function init() {
+            console.log('🚀 Inicjalizacja aplikacji...');
             const token = getTokenFromURL();
+            console.log('🔑 Token z URL:', token);
 
             if (!token) {
                 showError('Brak kodu', 'Nie podano kodu głosowania w adresie URL. Sprawdź link i spróbuj ponownie.');
@@ -233,10 +267,14 @@
             }
 
             const tokenData = await checkToken(token);
+            console.log('📋 Wynik sprawdzenia tokenu:', tokenData);
             
             if (tokenData) {
+                console.log('✅ Token jest ważny, pokazuję formularz głosowania');
                 renderCandidates(token);
                 showVoting();
+            } else {
+                console.log('❌ Token jest nieważny lub wystąpił błąd');
             }
         }
 
