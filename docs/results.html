@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>WYNIKI NA ŻYWO</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        .container { height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        h1 { text-align: center; font-size: 3rem; margin: 10px 0 20px 0; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+        #chart-container { flex-grow: 1; position: relative; width: 90%; margin: 0 auto; }
+        .loading { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Aktualne Wyniki Głosowania</h1>
+    <div id="chart-container">
+        <canvas id="myChart"></canvas>
+        <div id="loading-msg" class="loading">Łączenie z bazą...</div>
+    </div>
+</div>
+
+<script>
+    const { createClient } = window.supabase;
+    const SUPABASE_URL = 'https://sbcqfgackqadypynxuou.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_0DB_RLitMw4sucuFfs-rHQ_7MIRaA2T'; // Twój klucz
+    const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let chartInstance = null;
+
+    // Kolory dla 10 kandydatów (żywe, neonowe kolory na czarne tło)
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', 
+        '#FF9F40', '#E7E9ED', '#76FF03', '#D500F9', '#00E5FF'
+    ];
+
+    async function initResults() {
+        // Sprawdź czy admin jest zalogowany (wymagane przez RLS)
+        const { data: { session } } = await client.auth.getSession();
+        
+        if (!session) {
+            document.getElementById('loading-msg').innerText = "Brak dostępu. Zaloguj się najpierw w panelu admina.";
+            return;
+        }
+
+        setupChart();
+        await fetchData();
+
+        document.getElementById('loading-msg').style.display = 'none';
+
+        // Subskrypcja na żywo
+        client.channel('public:votes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, payload => {
+                console.log('Nowy głos - aktualizacja wykresu');
+                fetchData();
+            })
+            .subscribe();
+    }
+
+    async function fetchData() {
+        // Pobierz TYLKO oddane głosy
+        const { data, error } = await client.from('votes').select('choice_id').eq('has_voted', true);
+        if (error) return console.error(error);
+
+        // Zliczanie
+        const counts = new Array(10).fill(0); // 10 Kandydatów
+        data.forEach(v => {
+            if (v.choice_id >= 1 && v.choice_id <= 10) {
+                counts[v.choice_id - 1]++; // index 0 to kandydat 1
+            }
+        });
+
+        // Update wykresu
+        chartInstance.data.datasets[0].data = counts;
+        chartInstance.update();
+    }
+
+    function setupChart() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], // Numery kandydatów
+                datasets: [{
+                    label: 'Liczba głosów',
+                    data: [0,0,0,0,0,0,0,0,0,0],
+                    backgroundColor: colors,
+                    borderColor: '#000',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }, // Ukrywamy legendę, bo mamy podpisy na osi
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#888', font: { size: 14 } },
+                        grid: { color: '#333' }
+                    },
+                    x: {
+                        ticks: { color: '#fff', font: { size: 20, weight: 'bold' } },
+                        grid: { display: false }
+                    }
+                },
+                animation: {
+                    duration: 500
+                }
+            }
+        });
+    }
+
+    // Start
+    initResults();
+
+</script>
+</body>
+</html>
