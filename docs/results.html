@@ -62,7 +62,7 @@
 
     async function fetchData() {
         // Pobierz TYLKO oddane głosy
-        const { data, error } = await client.from('public.VotingTokens').select('choiceId').eq('has_voted', true);
+        const { data, error } = await client.from('VotingTokens').select('choiceId').eq('has_voted', true);
         if (error) return console.error(error);
 
         // Zliczanie
