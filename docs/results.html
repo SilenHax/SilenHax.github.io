@@ -2,126 +2,331 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>WYNIKI NA ŻYWO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyniki na Żywo - Konkurs Piosenki</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-        .container { height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        h1 { text-align: center; font-size: 3rem; margin: 10px 0 20px 0; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
-        #chart-container { flex-grow: 1; position: relative; width: 90%; margin: 0 auto; }
-        .loading { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); color: #666; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Aktualne Wyniki Głosowania</h1>
-    <div id="chart-container">
-        <canvas id="myChart"></canvas>
-        <div id="loading-msg" class="loading">Łączenie z bazą...</div>
-    </div>
-</div>
-
-<script>
-    const { createClient } = window.supabase;
-    const SUPABASE_URL = 'https://sbcqfgackqadypynxuou.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_0DB_RLitMw4sucuFfs-rHQ_7MIRaA2T'; // Twój klucz
-    const client = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let chartInstance = null;
-
-    // Kolory dla 10 kandydatów (żywe, neonowe kolory na czarne tło)
-    const colors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', 
-        '#FF9F40', '#E7E9ED', '#76FF03', '#D500F9', '#00E5FF'
-    ];
-
-    async function initResults() {
-        // Sprawdź czy admin jest zalogowany (wymagane przez RLS)
-        const { data: { session } } = await client.auth.getSession();
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
         
-        if (!session) {
-            document.getElementById('loading-msg').innerText = "Brak dostępu. Zaloguj się najpierw w panelu admina.";
-            return;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073, 0 0 40px #e60073; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6, 0 0 50px #ff4da6; }
+        }
+        
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
-        setupChart();
-        await fetchData();
+        .status-badge {
+            animation: bounce 1s infinite;
+        }
 
-        document.getElementById('loading-msg').style.display = 'none';
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-8 py-6 h-screen flex flex-col">
+        <!-- Header -->
+        <div class="text-center mb-6 slide-in">
+            <h1 class="text-6xl font-black text-white mb-2 glow">🎤 WYNIKI NA ŻYWO</h1>
+            <p class="text-2xl text-purple-200 font-semibold">Konkurs Piosenki 2024</p>
+            
+            <!-- Status Badge -->
+            <div class="mt-4 inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-full px-6 py-3 border-2 border-white/30">
+                <div id="status-indicator" class="w-4 h-4 rounded-full bg-red-500"></div>
+                <span id="status-text" class="text-white font-bold text-lg">Głosowanie zamknięte</span>
+            </div>
+        </div>
 
-        // Subskrypcja na żywo
-        client.channel('public:votes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, payload => {
-                console.log('Nowy głos - aktualizacja wykresu');
-                fetchData();
-            })
-            .subscribe();
-    }
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-3 gap-4 mb-6 slide-in">
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                <div class="text-purple-200 text-sm font-semibold mb-1">ŁĄCZNA LICZBA GŁOSÓW</div>
+                <div class="text-5xl font-black text-white" id="total-votes">0</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                <div class="text-purple-200 text-sm font-semibold mb-1">LIDER</div>
+                <div class="text-2xl font-black text-yellow-300" id="leader-name">-</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                <div class="text-purple-200 text-sm font-semibold mb-1">GŁOSÓW NA LIDERA</div>
+                <div class="text-5xl font-black text-white" id="leader-votes">0</div>
+            </div>
+        </div>
 
-    async function fetchData() {
-        // Pobierz TYLKO oddane głosy
-        const { data, error } = await client.from('VotingTokens').select('choiceId').eq('has_voted', true);
-        if (error) return console.error(error);
+        <!-- Chart Container -->
+        <div class="flex-1 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 slide-in">
+            <canvas id="resultsChart"></canvas>
+        </div>
 
-        // Zliczanie
-        const counts = new Array(10).fill(0); // 10 Kandydatów
-        data.forEach(v => {
-            if (v.choice_id >= 1 && v.choice_id <= 10) {
-                counts[v.choice_id - 1]++; // index 0 to kandydat 1
-            }
-        });
+        <!-- Last Update -->
+        <div class="text-center mt-4 text-purple-200 text-sm">
+            <span id="last-update">Aktualizacja: -</span>
+        </div>
+    </div>
 
-        // Update wykresu
-        chartInstance.data.datasets[0].data = counts;
-        chartInstance.update();
-    }
-
-    function setupChart() {
-        const ctx = document.getElementById('myChart').getContext('2d');
+    <script>
+        const SUPABASE_URL = 'https://sbcqfgackqadypynxuou.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiY3FmZ2Fja3FhZHlweW54dW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMjIwODAsImV4cCI6MjA4MTY5ODA4MH0.dIFe_sQf--QeDIjValBb3-xne-RYUlqRDs6SKIehhhQ';
         
-        chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], // Numery kandydatów
-                datasets: [{
-                    label: 'Liczba głosów',
-                    data: [0,0,0,0,0,0,0,0,0,0],
-                    backgroundColor: colors,
-                    borderColor: '#000',
-                    borderWidth: 2,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }, // Ukrywamy legendę, bo mamy podpisy na osi
-                    tooltip: { enabled: true }
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Kandydaci
+        const candidates = [
+            { id: 1, name: 'Maja Świercz', song: '"Sway" - Michael Buble', color: '#FF6B6B' },
+            { id: 2, name: 'Katarzyna Swat', song: '"Wonderwall" - Oasis', color: '#4ECDC4' },
+            { id: 3, name: 'Szymon Płuciennik', song: '"Can\'t catch me now" - Olivia Rodrigo', color: '#45B7D1' },
+            { id: 4, name: 'Zuzanna Trochim', song: '"Everywhere, everything" - Noah Kahan', color: '#FFA07A' },
+            { id: 5, name: 'Wojtek Ziółek, Ala Lizanowicz', song: '"Creep" - Radiohead', color: '#98D8C8' },
+            { id: 6, name: 'Maja Głuszcz, Nadia Chylak', song: '"Stitches" - Shawn Mendes', color: '#F7DC6F' },,
+            { id: 7, name: 'Marta Frączek', song: '"My heart will go on" - Celine Dion', color: '#BB8FCE' },
+            { id: 8, name: 'Michał Kamiński, Igor Kwintal, Adam Pyzara, Amelia Olesik', song: '"We will rock you" - Queen', color: '#85C1E2' },
+            { id: 9, name: 'Kacper Chylicki', song: '"Die with a smile" - Lady Gaga, Bruno Mars', color: '#F8B739' },
+            { id: 10, name: 'Bartek Borowiecki z zespołem', song: '"Where is my mind?" - Pixies', color: '#52B788' }
+        ];
+
+        let chart = null;
+        let votingActive = false;
+
+        // Inicjalizacja wykresu
+        function initChart() {
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: candidates.map(c => c.name),
+                    datasets: [{
+                        label: 'Liczba głosów',
+                        data: new Array(10).fill(0),
+                        backgroundColor: candidates.map(c => c.color),
+                        borderColor: candidates.map(c => c.color),
+                        borderWidth: 3,
+                        borderRadius: 10,
+                        borderSkipped: false,
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#888', font: { size: 14 } },
-                        grid: { color: '#333' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 750,
+                        easing: 'easeInOutQuart'
                     },
-                    x: {
-                        ticks: { color: '#fff', font: { size: 20, weight: 'bold' } },
-                        grid: { display: false }
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 },
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed.y / total) * 100).toFixed(1) : 0;
+                                    return `${context.parsed.y} głosów (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#fff',
+                                font: { size: 14, weight: 'bold' },
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                lineWidth: 2
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff',
+                                font: { size: 13, weight: '600' },
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
                     }
-                },
-                animation: {
-                    duration: 500
                 }
+            });
+        }
+
+        // Pobierz wyniki
+        async function fetchResults() {
+            try {
+                console.log('📊 Pobieram wyniki...');
+                
+                // Użyj funkcji bazy danych do pobrania zagregowanych wyników
+                const { data: voteResults, error } = await supabaseClient
+                    .rpc('get_vote_results');
+
+                if (error) {
+                    console.error('❌ Błąd pobierania wyników:', error);
+                    return;
+                }
+
+                console.log('✅ Pobrano wyniki:', voteResults);
+
+                // Przekształć wyniki na tablicę z liczbami głosów dla każdego kandydata
+                const voteCounts = new Array(10).fill(0);
+                voteResults.forEach(result => {
+                    if (result.choiceid >= 1 && result.choiceid <= 10) {
+                        voteCounts[result.choiceid - 1] = result.vote_count;
+                    }
+                });
+
+                console.log('📊 Liczby głosów:', voteCounts);
+
+                // Zaktualizuj wykres
+                if (chart) {
+                    chart.data.datasets[0].data = voteCounts;
+                    chart.update();
+                }
+
+                // Zaktualizuj statystyki
+                updateStats(voteCounts);
+                
+                // Zaktualizuj czas ostatniej aktualizacji
+                document.getElementById('last-update').textContent = 
+                    `Ostatnia aktualizacja: ${new Date().toLocaleTimeString('pl-PL')}`;
+
+            } catch (error) {
+                console.error('❌ Błąd:', error);
             }
-        });
-    }
+        }
 
-    // Start
-    initResults();
+        // Zaktualizuj statystyki
+        function updateStats(voteCounts) {
+            const totalVotes = voteCounts.reduce((a, b) => a + b, 0);
+            const maxVotes = Math.max(...voteCounts);
+            const leaderIndex = voteCounts.indexOf(maxVotes);
+            const leaderName = maxVotes > 0 ? candidates[leaderIndex].name : '-';
 
-</script>
+            document.getElementById('total-votes').textContent = totalVotes;
+            document.getElementById('leader-name').textContent = leaderName;
+            document.getElementById('leader-votes').textContent = maxVotes;
+        }
+
+        // Sprawdź status głosowania
+        async function checkVotingStatus() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('app_config')
+                    .select('value')
+                    .eq('key', 'voting_active')
+                    .single();
+
+                if (data) {
+                    votingActive = data.value;
+                    updateStatusUI(data.value);
+                }
+            } catch (error) {
+                console.error('❌ Błąd sprawdzania statusu:', error);
+            }
+        }
+
+        // Zaktualizuj UI statusu
+        function updateStatusUI(isActive) {
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+
+            if (isActive) {
+                indicator.className = 'w-4 h-4 rounded-full bg-green-500 status-badge';
+                indicator.style.boxShadow = '0 0 20px #00ff00';
+                statusText.textContent = 'Głosowanie trwa';
+                statusText.className = 'text-green-300 font-bold text-lg';
+            } else {
+                indicator.className = 'w-4 h-4 rounded-full bg-red-500';
+                indicator.style.boxShadow = 'none';
+                statusText.textContent = 'Głosowanie zamknięte';
+                statusText.className = 'text-white font-bold text-lg';
+            }
+        }
+
+        // Subskrybuj zmiany w czasie rzeczywistym
+        function subscribeToChanges() {
+            // Nasłuchuj zmian w VotingTokens
+            supabaseClient
+                .channel('voting-changes')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'VotingTokens' }, 
+                    (payload) => {
+                        console.log('🔄 Zmiana w głosach:', payload);
+                        fetchResults();
+                    }
+                )
+                .subscribe();
+
+            // Nasłuchuj zmian statusu głosowania
+            supabaseClient
+                .channel('config-changes')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'app_config' }, 
+                    (payload) => {
+                        console.log('🔄 Zmiana konfiguracji:', payload);
+                        if (payload.new?.key === 'voting_active') {
+                            votingActive = payload.new.value;
+                            updateStatusUI(payload.new.value);
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        // Inicjalizacja
+        async function init() {
+            console.log('🚀 Inicjalizacja strony wyników...');
+            
+            initChart();
+            await checkVotingStatus();
+            await fetchResults();
+            subscribeToChanges();
+
+            // Odświeżaj wyniki co 5 sekund jako backup
+            setInterval(fetchResults, 5000);
+            setInterval(checkVotingStatus, 5000);
+        }
+
+        // Uruchom po załadowaniu
+        window.addEventListener('load', init);
+    </script>
 </body>
 </html>
