@@ -13,7 +13,8 @@
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow: hidden;
+            min-height: 100vh;
+            background-attachment: fixed;
         }
         
         .glow {
@@ -54,42 +55,42 @@
     </style>
 </head>
 <body class="min-h-screen">
-    <div class="container mx-auto px-8 py-6 h-screen flex flex-col">
+    <div class="container mx-auto px-4 sm:px-8 py-6 min-h-screen flex flex-col">
         <!-- Header -->
-        <div class="text-center mb-6 slide-in">
-            <h1 class="text-6xl font-black text-white mb-2 glow">🎤 WYNIKI NA ŻYWO</h1>
-            <p class="text-2xl text-purple-200 font-semibold">Konkurs Piosenki 2024</p>
+        <div class="text-center mb-4 sm:mb-6 slide-in">
+            <h1 class="text-4xl sm:text-6xl font-black text-white mb-2 glow">🎤 WYNIKI NA ŻYWO 🎤</h1>
+            <p class="text-xl sm:text-2xl text-purple-200 font-semibold">Konkurs Piosenki Obcojęzycznej 2026</p>
             
             <!-- Status Badge -->
-            <div class="mt-4 inline-flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-full px-6 py-3 border-2 border-white/30">
-                <div id="status-indicator" class="w-4 h-4 rounded-full bg-red-500"></div>
-                <span id="status-text" class="text-white font-bold text-lg">Głosowanie zamknięte</span>
+            <div class="mt-3 sm:mt-4 inline-flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-md rounded-full px-4 sm:px-6 py-2 sm:py-3 border-2 border-white/30">
+                <div id="status-indicator" class="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500"></div>
+                <span id="status-text" class="text-white font-bold text-sm sm:text-lg">Głosowanie zamknięte</span>
             </div>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-3 gap-4 mb-6 slide-in">
-            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <div class="text-purple-200 text-sm font-semibold mb-1">ŁĄCZNA LICZBA GŁOSÓW</div>
-                <div class="text-5xl font-black text-white" id="total-votes">0</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 slide-in">
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/20">
+                <div class="text-purple-200 text-xs sm:text-sm font-semibold mb-1">ŁĄCZNA LICZBA GŁOSÓW</div>
+                <div class="text-3xl sm:text-5xl font-black text-white" id="total-votes">0</div>
             </div>
-            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <div class="text-purple-200 text-sm font-semibold mb-1">LIDER</div>
-                <div class="text-2xl font-black text-yellow-300" id="leader-name">-</div>
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/20">
+                <div class="text-purple-200 text-xs sm:text-sm font-semibold mb-1">LIDER</div>
+                <div class="text-xl sm:text-2xl font-black text-yellow-300" id="leader-name">-</div>
             </div>
-            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <div class="text-purple-200 text-sm font-semibold mb-1">GŁOSÓW NA LIDERA</div>
-                <div class="text-5xl font-black text-white" id="leader-votes">0</div>
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/20">
+                <div class="text-purple-200 text-xs sm:text-sm font-semibold mb-1">GŁOSÓW NA LIDERA</div>
+                <div class="text-3xl sm:text-5xl font-black text-white" id="leader-votes">0</div>
             </div>
         </div>
 
         <!-- Chart Container -->
-        <div class="flex-1 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 slide-in">
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-white/20 slide-in mb-4" style="min-height: 400px; height: 60vh; max-height: 600px;">
             <canvas id="resultsChart"></canvas>
         </div>
 
         <!-- Last Update -->
-        <div class="text-center mt-4 text-purple-200 text-sm">
+        <div class="text-center mt-2 sm:mt-4 text-purple-200 text-xs sm:text-sm pb-4">
             <span id="last-update">Aktualizacja: -</span>
         </div>
     </div>
@@ -102,16 +103,16 @@
 
         // Kandydaci
         const candidates = [
-            { id: 1, name: 'Maja Świercz', song: '"Sway" - Michael Buble', color: '#FF6B6B' },
-            { id: 2, name: 'Katarzyna Swat', song: '"Wonderwall" - Oasis', color: '#4ECDC4' },
-            { id: 3, name: 'Szymon Płuciennik', song: '"Can\'t catch me now" - Olivia Rodrigo', color: '#45B7D1' },
-            { id: 4, name: 'Zuzanna Trochim', song: '"Everywhere, everything" - Noah Kahan', color: '#FFA07A' },
-            { id: 5, name: 'Wojtek Ziółek, Ala Lizanowicz', song: '"Creep" - Radiohead', color: '#98D8C8' },
-            { id: 6, name: 'Maja Głuszcz, Nadia Chylak', song: '"Stitches" - Shawn Mendes', color: '#F7DC6F' },,
-            { id: 7, name: 'Marta Frączek', song: '"My heart will go on" - Celine Dion', color: '#BB8FCE' },
-            { id: 8, name: 'Michał Kamiński, Igor Kwintal, Adam Pyzara, Amelia Olesik', song: '"We will rock you" - Queen', color: '#85C1E2' },
-            { id: 9, name: 'Kacper Chylicki', song: '"Die with a smile" - Lady Gaga, Bruno Mars', color: '#F8B739' },
-            { id: 10, name: 'Bartek Borowiecki z zespołem', song: '"Where is my mind?" - Pixies', color: '#52B788' }
+            { id: 1, name: '"Sway" - Zespół', color: '#FF6B6B' },
+            { id: 2, name: '"Wonderwall - Katarzyna Swat', color: '#4ECDC4' },
+            { id: 3, name: '"Can\'t catch me now" - Szymon Płuciennik', color: '#45B7D1' },
+            { id: 4, name: '"Riptide" - Zuzanna Trochim', color: '#FFA07A' },
+            { id: 5, name: '"Creep" - Wojtek Ziółek, Ala Lizanowicz', color: '#98D8C8' },
+            { id: 6, name: '"Stitches" - Maja Głuszcz, Nadia Chylak', color: '#F7DC6F' },
+            { id: 7, name: '"My heart will go on" - Marta Frączek', color: '#BB8FCE' },
+            { id: 8, name: '"We will rock you" - Zespół', color: '#85C1E2' },
+            { id: 9, name: '"Die with a smile" - Kacper Chylicki', color: '#F8B739' },
+            { id: 10, name: '"Where is my mind?" - Bartek Manowiecki z zespołem', color: '#52B788' }
         ];
 
         let chart = null;
@@ -165,7 +166,10 @@
                             beginAtZero: true,
                             ticks: {
                                 color: '#fff',
-                                font: { size: 14, weight: 'bold' },
+                                font: { 
+                                    size: window.innerWidth < 640 ? 10 : 14, 
+                                    weight: 'bold' 
+                                },
                                 stepSize: 1
                             },
                             grid: {
@@ -176,7 +180,10 @@
                         x: {
                             ticks: {
                                 color: '#fff',
-                                font: { size: 13, weight: '600' },
+                                font: { 
+                                    size: window.innerWidth < 640 ? 9 : 13, 
+                                    weight: '600' 
+                                },
                                 maxRotation: 45,
                                 minRotation: 45
                             },
@@ -269,15 +276,15 @@
             const statusText = document.getElementById('status-text');
 
             if (isActive) {
-                indicator.className = 'w-4 h-4 rounded-full bg-green-500 status-badge';
+                indicator.className = 'w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-green-500 status-badge';
                 indicator.style.boxShadow = '0 0 20px #00ff00';
                 statusText.textContent = 'Głosowanie trwa';
-                statusText.className = 'text-green-300 font-bold text-lg';
+                statusText.className = 'text-green-300 font-bold text-sm sm:text-lg';
             } else {
-                indicator.className = 'w-4 h-4 rounded-full bg-red-500';
+                indicator.className = 'w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500';
                 indicator.style.boxShadow = 'none';
                 statusText.textContent = 'Głosowanie zamknięte';
-                statusText.className = 'text-white font-bold text-lg';
+                statusText.className = 'text-white font-bold text-sm sm:text-lg';
             }
         }
 
@@ -323,6 +330,19 @@
             // Odświeżaj wyniki co 5 sekund jako backup
             setInterval(fetchResults, 5000);
             setInterval(checkVotingStatus, 5000);
+
+            // Obsługa zmiany rozmiaru okna - aktualizuj rozmiary czcionek w wykresie
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (chart) {
+                        chart.options.scales.x.ticks.font.size = window.innerWidth < 640 ? 9 : 13;
+                        chart.options.scales.y.ticks.font.size = window.innerWidth < 640 ? 10 : 14;
+                        chart.update();
+                    }
+                }, 250);
+            });
         }
 
         // Uruchom po załadowaniu
