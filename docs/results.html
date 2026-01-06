@@ -52,24 +52,59 @@
             0%, 100% { transform: translateY(-5%); }
             50% { transform: translateY(0); }
         }
+
+        .chart-appear {
+            animation: chartAppear 1s ease-out;
+        }
+
+        @keyframes chartAppear {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .bar-pop {
+            animation: barPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes barPop {
+            0% { transform: scaleY(0); }
+            100% { transform: scaleY(1); }
+        }
     </style>
 </head>
 <body class="min-h-screen">
     <div class="container mx-auto px-4 sm:px-8 py-6 min-h-screen flex flex-col">
         <!-- Header -->
         <div class="text-center mb-4 sm:mb-6 slide-in">
-            <h1 class="text-4xl sm:text-6xl font-black text-white mb-2 glow">🎤 WYNIKI NA ŻYWO 🎤</h1>
-            <p class="text-xl sm:text-2xl text-purple-200 font-semibold">Konkurs Piosenki Obcojęzycznej 2026</p>
+            <h1 class="text-4xl sm:text-6xl font-black text-white mb-2 glow">🎤 WYNIKI NA ŻYWO</h1>
+            <p class="text-xl sm:text-2xl text-purple-200 font-semibold">Konkurs Piosenki 2024</p>
             
             <!-- Status Badge -->
             <div class="mt-3 sm:mt-4 inline-flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-md rounded-full px-4 sm:px-6 py-2 sm:py-3 border-2 border-white/30">
                 <div id="status-indicator" class="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500"></div>
                 <span id="status-text" class="text-white font-bold text-sm sm:text-lg">Głosowanie zamknięte</span>
             </div>
+
+            <!-- Results Status Badge -->
+            <div id="results-status-badge" class="mt-3 inline-flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-md rounded-full px-4 sm:px-6 py-2 sm:py-3 border-2 border-white/30">
+                <div id="results-indicator" class="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500"></div>
+                <span id="results-status-text" class="text-white font-bold text-sm sm:text-lg">Wyniki ukryte</span>
+            </div>
+        </div>
+
+        <!-- Alert for hidden results -->
+        <div id="results-hidden-alert" class="hidden mb-4 sm:mb-6 slide-in">
+            <div class="bg-blue-500/20 border-2 border-blue-400 rounded-3xl p-6 sm:p-8 backdrop-blur-md">
+                <div class="text-center">
+                    <div class="text-5xl sm:text-6xl mb-4">🏆</div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3" id="alert-title">Wyniki ukryte</h2>
+                    <p class="text-blue-200 text-base sm:text-lg" id="alert-message">Wyniki będą opublikowane w chwili ogłoszenia zwycięzców!</p>
+                </div>
+            </div>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 slide-in">
+        <div id="stats-section" class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 slide-in">
             <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/20">
                 <div class="text-purple-200 text-xs sm:text-sm font-semibold mb-1">ŁĄCZNA LICZBA GŁOSÓW</div>
                 <div class="text-3xl sm:text-5xl font-black text-white" id="total-votes">0</div>
@@ -85,7 +120,7 @@
         </div>
 
         <!-- Chart Container -->
-        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-white/20 slide-in mb-4" style="min-height: 400px; height: 60vh; max-height: 600px;">
+        <div id="chart-section" class="bg-white/10 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-white/20 slide-in chart-appear mb-4" style="min-height: 400px; height: 60vh; max-height: 600px;">
             <canvas id="resultsChart"></canvas>
         </div>
 
@@ -115,6 +150,33 @@
 
         let chart = null;
         let votingActive = false;
+        let resultsVisible = true; // Default to true, will be updated
+        let isAdmin = false; // Track if user is authenticated admin
+
+        // Sprawdź czy użytkownik jest zalogowanym adminem
+        async function checkAdminAuth() {
+    try {
+        // 1. Pobieramy sesję
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) throw error;
+
+        // 2. Jeśli session istnieje, isAdmin = true
+        isAdmin = !!session; 
+
+        if (isAdmin) {
+            console.log('👑 Zalogowany jako admin:', session.user.email);
+        } else {
+            console.log('👤 Użytkownik publiczny (brak sesji)');
+        }
+
+        return isAdmin;
+    } catch (error) {
+        console.error('❌ Błąd autentykacji:', error);
+        isAdmin = false;
+        return false;
+    }
+}
 
         // Inicjalizacja wykresu
         function initChart() {
@@ -138,8 +200,18 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: {
-                        duration: 750,
-                        easing: 'easeInOutQuart'
+                        duration: 1000,
+                        easing: 'easeInOutQuart',
+                        onComplete: function() {
+                            // Animation complete
+                        },
+                        delay: (context) => {
+                            let delay = 0;
+                            if (context.type === 'data' && context.mode === 'default') {
+                                delay = context.dataIndex * 100;
+                            }
+                            return delay;
+                        }
                     },
                     plugins: {
                         legend: {
@@ -196,6 +268,15 @@
 
         // Pobierz wyniki
         async function fetchResults() {
+            // Admins bypass all restrictions
+            if (!isAdmin) {
+                // Don't fetch if results are hidden OR voting is active (for non-admins)
+                if (!resultsVisible || votingActive) {
+                    console.log('⏸️ Wyniki ukryte lub głosowanie aktywne - pomijam pobieranie');
+                    return;
+                }
+            }
+
             try {
                 console.log('📊 Pobieram wyniki...');
                 
@@ -268,6 +349,85 @@
             }
         }
 
+        // Sprawdź czy wyniki są widoczne
+        async function checkResultsVisibility() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('app_config')
+                    .select('value')
+                    .eq('key', 'show_results')
+                    .single();
+
+                if (data !== null && data !== undefined) {
+                    resultsVisible = data.value;
+                    updateResultsVisibilityUI(data.value);
+                }
+            } catch (error) {
+                console.error('❌ Błąd sprawdzania widoczności wyników:', error);
+            }
+        }
+
+        // Zaktualizuj UI widoczności wyników
+        function updateResultsVisibilityUI(isVisible) {
+            const statsSection = document.getElementById('stats-section');
+            const chartSection = document.getElementById('chart-section');
+            const hiddenAlert = document.getElementById('results-hidden-alert');
+            const indicator = document.getElementById('results-indicator');
+            const statusText = document.getElementById('results-status-text');
+            const alertTitle = document.getElementById('alert-title');
+            const alertMessage = document.getElementById('alert-message');
+
+            // Update results status badge
+            if (isVisible) {
+                indicator.className = 'w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-green-500 status-badge';
+                indicator.style.boxShadow = '0 0 20px #00ff00';
+                statusText.textContent = 'Wyniki publiczne';
+                statusText.className = 'text-green-300 font-bold text-sm sm:text-lg';
+            } else {
+                indicator.className = 'w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500';
+                indicator.style.boxShadow = 'none';
+                statusText.textContent = 'Wyniki ukryte';
+                statusText.className = 'text-white font-bold text-sm sm:text-lg';
+            }
+
+            // If admin, always show results and bypass all controls
+            if (isAdmin) {
+                console.log('👑 Admin - pokazuję wyniki bez względu na ustawienia');
+                statsSection.classList.remove('hidden');
+                chartSection.classList.remove('hidden');
+                chartSection.classList.add('chart-appear');
+                hiddenAlert.classList.add('hidden');
+                fetchResults();
+                return;
+            }
+
+            // Always show alert if voting is active, regardless of show_results
+            if (votingActive || !isVisible) {
+                // Hide results and show alert
+                statsSection.classList.add('hidden');
+                chartSection.classList.add('hidden');
+                hiddenAlert.classList.remove('hidden');
+
+                // Different messages based on voting status
+                if (votingActive) {
+                    alertTitle.textContent = 'Głosowanie w trakcie!';
+                    alertMessage.textContent = 'Wyniki zostaną opublikowane po zakończeniu głosowania.';
+                } else {
+                    alertTitle.textContent = 'Wyniki ukryte';
+                    alertMessage.textContent = 'Wyniki będą opublikowane w chwili ogłoszenia zwycięzców!';
+                }
+            } else {
+                // Show results only if voting is NOT active and results are visible
+                statsSection.classList.remove('hidden');
+                chartSection.classList.remove('hidden');
+                chartSection.classList.add('chart-appear');
+                hiddenAlert.classList.add('hidden');
+                
+                // Fetch fresh results when they become visible
+                fetchResults();
+            }
+        }
+
         // Zaktualizuj UI statusu
         function updateStatusUI(isActive) {
             const indicator = document.getElementById('status-indicator');
@@ -284,6 +444,9 @@
                 statusText.textContent = 'Głosowanie zamknięte';
                 statusText.className = 'text-white font-bold text-sm sm:text-lg';
             }
+
+            // Update results visibility UI based on new voting status
+            updateResultsVisibilityUI(resultsVisible);
         }
 
         // Subskrybuj zmiany w czasie rzeczywistym
@@ -300,7 +463,7 @@
                 )
                 .subscribe();
 
-            // Nasłuchuj zmian statusu głosowania
+            // Nasłuchuj zmian statusu głosowania i widoczności wyników
             supabaseClient
                 .channel('config-changes')
                 .on('postgres_changes', 
@@ -310,6 +473,10 @@
                         if (payload.new?.key === 'voting_active') {
                             votingActive = payload.new.value;
                             updateStatusUI(payload.new.value);
+                        }
+                        if (payload.new?.key === 'show_results') {
+                            resultsVisible = payload.new.value;
+                            updateResultsVisibilityUI(payload.new.value);
                         }
                     }
                 )
@@ -321,13 +488,16 @@
             console.log('🚀 Inicjalizacja strony wyników...');
             
             initChart();
+            await checkAdminAuth(); // Check if user is authenticated admin first
             await checkVotingStatus();
+            await checkResultsVisibility();
             await fetchResults();
             subscribeToChanges();
 
             // Odświeżaj wyniki co 5 sekund jako backup
             setInterval(fetchResults, 5000);
             setInterval(checkVotingStatus, 5000);
+            setInterval(checkResultsVisibility, 5000);
 
             // Obsługa zmiany rozmiaru okna - aktualizuj rozmiary czcionek w wykresie
             let resizeTimeout;
