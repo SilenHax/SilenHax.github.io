@@ -106,6 +106,15 @@
         const successEl = document.getElementById('success');
         const candidatesEl = document.getElementById('candidates');
 
+	let statusCheckInterval;
+
+// Funkcja czyszcząca wszystko po sukcesie
+function stopAllBackgroundTraffic() {
+    if (statusCheckInterval) clearInterval(statusCheckInterval);
+    // Usuwamy klienta Supabase z pamięci, by zamknąć połączenia
+    console.log('🔌 Zamykanie połączeń tła...');
+}
+	
         // Pobierz token z URL
         function getTokenFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -136,13 +145,15 @@
         }
 
         // Pokaż sukces
-        function showSuccess(candidateName) {
-            loadingEl.classList.add('hidden');
-            errorEl.classList.add('hidden');
-            votingEl.classList.add('hidden');
-            successEl.classList.remove('hidden');
-            document.getElementById('voted-candidate').textContent = candidateName;
-        }
+        // Modyfikacja showSuccess
+function showSuccess(candidateName) {
+    stopAllBackgroundTraffic(); // STOP dla zapytań
+    loadingEl.classList.add('hidden');
+    errorEl.classList.add('hidden');
+    votingEl.classList.add('hidden');
+    successEl.classList.remove('hidden');
+    document.getElementById('voted-candidate').textContent = candidateName;
+}
 
         // Sprawdź czy głosowanie jest aktywne
         async function checkVotingActive(client) {
@@ -174,14 +185,17 @@
                 console.log('🔍 Sprawdzam token:', token);
                 
                 const client = getSupabaseClient(token);
-                
-                // Najpierw sprawdź czy głosowanie jest aktywne
-                const isVotingActive = await checkVotingActive(client);
-                
-                if (!isVotingActive) {
-                    showError('Głosowanie zamknięte', 'Głosowanie nie jest obecnie aktywne. Spróbuj ponownie później.');
-                    return null;
-                }
+    const isVotingActive = await checkVotingActive(client);
+    
+    if (!isVotingActive) {
+        showError('Głosowanie zamknięte', 'Głosowanie nie jest obecnie aktywne.');
+        // Ustawiamy sprawdzanie statusu, by strona sama "ożyła" gdy admin włączy głosowanie
+        if(!statusCheckInterval) statusCheckInterval = setInterval(() => checkToken(token), 10000);
+        return null;
+    }
+    
+    // Jeśli głosowanie aktywne, czyścimy interwał sprawdzania statusu
+    if (statusCheckInterval) clearInterval(statusCheckInterval);
                 
                 const { data, error } = await client
                     .from('VotingTokens')
