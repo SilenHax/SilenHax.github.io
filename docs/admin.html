@@ -46,6 +46,19 @@
         </div>
     </div>
 
+    <div class="card p-4 mb-4">
+        <h5 class="text-muted mb-3">Widoczność Wyników</h5>
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span id="results-dot" class="status-dot"></span>
+                <span id="results-text" class="h4">Wyniki UKRYTE</span>
+            </div>
+            <div style="width: 50%;">
+                <button id="toggle-results-btn" onclick="toggleResults()" class="btn btn-success btn-big">POKAŻ WYNIKI</button>
+            </div>
+        </div>
+    </div>
+
     <div class="card p-4">
         <h5 class="text-muted mb-3">Wizualizacja</h5>
         <p>Otwórz ten widok na projektorze. Wymaga zalogowania w tej przeglądarce.</p>
@@ -66,6 +79,7 @@
     const client = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let votingActive = false;
+    let resultsVisible = false;
 
     // 1. LOGOWANIE
     async function login() {
@@ -99,23 +113,34 @@
         }
     }
     
-    // Uruchomienie przy załadowaniu strony (żeby nie trzeba było logować się od nowa po odświeżeniu)
     initApp();
 
-    // 2. STATUS GŁOSOWANIA (app_config)
+    // 2. STATUS (app_config)
     async function checkStatus() {
-        const { data } = await client.from('app_config').select('value').eq('key', 'voting_active').single();
-        if (data) updateUI(data.value);
+        // Pobranie statusu głosowania
+        const { data: votingData } = await client.from('app_config').select('value').eq('key', 'voting_active').single();
+        if (votingData) updateVotingUI(votingData.value);
+
+        // Pobranie statusu wyników
+        const { data: resultsData } = await client.from('app_config').select('value').eq('key', 'show_results').single();
+        if (resultsData) updateResultsUI(resultsData.value);
     }
 
     async function toggleVoting() {
         const newState = !votingActive;
         const { error } = await client.from('app_config').update({ value: newState }).eq('key', 'voting_active');
-        if (!error) updateUI(newState);
-        else alert("Błąd aktualizacji: " + error.message);
+        if (!error) updateVotingUI(newState);
+        else alert("Błąd aktualizacji głosowania: " + error.message);
     }
 
-    function updateUI(isActive) {
+    async function toggleResults() {
+        const newState = !resultsVisible;
+        const { error } = await client.from('app_config').update({ value: newState }).eq('key', 'show_results');
+        if (!error) updateResultsUI(newState);
+        else alert("Błąd aktualizacji wyników: " + error.message);
+    }
+
+    function updateVotingUI(isActive) {
         votingActive = isActive;
         const btn = document.getElementById('toggle-btn');
         const dot = document.getElementById('status-dot');
@@ -132,6 +157,27 @@
             btn.className = "btn btn-success btn-big";
             dot.classList.remove('active-dot');
             txt.innerText = "Głosowanie ZATRZYMANE";
+            txt.style.color = "#e0e0e0";
+        }
+    }
+
+    function updateResultsUI(isVisible) {
+        resultsVisible = isVisible;
+        const btn = document.getElementById('toggle-results-btn');
+        const dot = document.getElementById('results-dot');
+        const txt = document.getElementById('results-text');
+
+        if (isVisible) {
+            btn.innerText = "UKRYJ WYNIKI";
+            btn.className = "btn btn-danger btn-big";
+            dot.classList.add('active-dot');
+            txt.innerText = "Wyniki PUBLICZNE";
+            txt.style.color = "#00ff00";
+        } else {
+            btn.innerText = "POKAŻ WYNIKI";
+            btn.className = "btn btn-success btn-big";
+            dot.classList.remove('active-dot');
+            txt.innerText = "Wyniki UKRYTE";
             txt.style.color = "#e0e0e0";
         }
     }
