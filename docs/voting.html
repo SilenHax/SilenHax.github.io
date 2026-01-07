@@ -92,11 +92,10 @@
             { id: 1, name: 'Michael\'s Band', song: '"Sway" - Michael Buble' },
             { id: 2, name: 'Katarzyna Swat', song: '"Wonderwall" - Oasis' },
             { id: 3, name: 'Zuzanna Trochim', song: '"Riptide" - Vance Joy'},
-            { id: 4, name: 'Wojtek Ziółek, Ala Lizanowicz, Oliwia Jóźwik', song: '"Creep" - Radiohead'},
-            { id: 5, name: 'Marta Frączek', song: '"My heart will go on" - Celine Dion' },
-            { id: 6, name: 'Zespół rodzinka.pl', song: '"We will rock you" - Queen' },
-            { id: 7, name: 'Kacper Chylicki z zespołem', song: '"Die with a smile" - Lady Gaga, Bruno Mars' },
-            { id: 8, name: 'zespół Wack', song: '"Where is my mind?" - Pixies'  }
+            { id: 4, name: 'Marta Frączek', song: '"My heart will go on" - Celine Dion' },
+            { id: 5, name: 'Zespół rodzinka.pl', song: '"We will rock you" - Queen' },
+            { id: 6, name: 'Kacper Chylicki z zespołem', song: '"Die with a smile" - Lady Gaga, Bruno Mars' },
+            { id: 7, name: 'zespół Wack', song: '"Where is my mind?" - Pixies'  }
         ];
 
         // Elementy DOM
@@ -123,7 +122,7 @@ function stopAllBackgroundTraffic() {
 
         // Walidacja choiceId
         function isValidChoiceId(choiceId) {
-            return Number.isInteger(choiceId) && choiceId >= 1 && choiceId <= 8;
+            return Number.isInteger(choiceId) && choiceId >= 1 && choiceId <= 7;
         }
 
         // Pokaż błąd

@@ -141,11 +141,10 @@
             { id: 1, name: '"Sway" - Michael\'s Band', color: '#FF6B6B' },
             { id: 2, name: '"Wonderwall" - Katarzyna Swat', color: '#4ECDC4' },
             { id: 3, name: '"Riptide" - Zuzanna Trochim', color: '#FFA07A' },
-            { id: 4, name: '"Creep" - Wojtek Ziółek, Ala Lizanowicz, Oliwia Jóźwik', color: '#98D8C8' },
-            { id: 5, name: '"My heart will go on" - Marta Frączek', color: '#BB8FCE' },
-            { id: 6, name: '"We will rock you" - Zespół rodzinka.pl', color: '#85C1E2' },
-            { id: 7, name: '"Die with a smile" - Kacper Chylicki z zespołem', color: '#F8B739' },
-            { id: 8, name: '"Where is my mind?" - zespół Wack', color: '#52B788' }
+            { id: 4, name: '"My heart will go on" - Marta Frączek', color: '#BB8FCE' },
+            { id: 5, name: '"We will rock you" - Zespół rodzinka.pl', color: '#85C1E2' },
+            { id: 6, name: '"Die with a smile" - Kacper Chylicki z zespołem', color: '#F8B739' },
+            { id: 7, name: '"Where is my mind?" - zespół Wack', color: '#52B788' }
         ];
 
         let chart = null;
@@ -287,9 +286,9 @@ async function pollStatusOnly() {
         const { data: voteResults, error } = await supabaseClient.rpc('get_vote_results');
         if (error) throw error;
 
-        const voteCounts = new Array(8).fill(0); // Zmienione na 8 zgodnie z Twoją listą
+        const voteCounts = new Array(7).fill(0); // Zmienione na 7 zgodnie z Twoją listą
         voteResults.forEach(result => {
-            if (result.choiceid >= 1 && result.choiceid <= 8) {
+            if (result.choiceid >= 1 && result.choiceid <= 7) {
                 voteCounts[result.choiceid - 1] = parseInt(result.vote_count);
             }
         });
@@ -458,8 +457,8 @@ async function pollStatusOnly() {
     
     subscribeToChanges();
 
-    // Dla zwykłych userów odświeżanie co 20 sekund (bezpieczne dla 500 osób)
-    // Dla admina co 10 sekund jako backup dla Realtime
+    // Dla zwykłych userów odświeżanie co 5 sekund (bezpieczne dla 500 osób)
+    // Dla admina co 3 sekundy jako backup dla Realtime
 
 const POLL_INTERVAL = isAdmin ? 3000 : 5000;
 
