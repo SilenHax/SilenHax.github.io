@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 Walentynki 💕</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Satisfy&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Dancing Script', cursive;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(135deg, #ffd4e5 0%, #ffb3d9 100%);
+        }
+
+        /* Tło z obrazkiem */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/3a1708389fa4a7ccee62364bd5a9a0d5.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.7) blur(3px);
+            z-index: 1;
+            transition: filter 1s ease;
+        }
+
+        .background.clear {
+            filter: brightness(1) blur(0);
+        }
+
+        /* Canvas dla konfetti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Główny kontener */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        /* Pytanie */
+        .question {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            color: #fff;
+            text-align: center;
+            margin-bottom: 50px;
+            text-shadow: 
+                4px 4px 0px #ff1493,
+                8px 8px 0px #ff69b4,
+                12px 12px 20px rgba(255, 20, 147, 0.5);
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.8));
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(-2deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(2deg);
+            }
+        }
+
+        /* Przyciski */
+        .buttons-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            font-size: 2rem;
+            padding: 20px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #yes-btn {
+            background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%);
+            color: white;
+            transform: scale(1);
+        }
+
+        #yes-btn:hover {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 15px 40px rgba(255, 20, 147, 0.6);
+        }
+
+        #yes-btn:active {
+            transform: scale(0.95);
+        }
+
+        #no-btn {
+            background: linear-gradient(135deg, #b0b0b0 0%, #808080 100%);
+            color: white;
+            transform: scale(1);
+        }
+
+        #no-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Kontener GIF */
+        .gif-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            text-align: center;
+            animation: zoomIn 0.5s ease-out;
+        }
+
+        .gif-container.active {
+            display: block;
+        }
+
+        .gif-container img {
+            max-width: 90vw;
+            max-height: 70vh;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(255, 20, 147, 0.8);
+            cursor: pointer;
+        }
+
+        .skip-hint {
+            margin-top: 20px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeInHint 1s ease-in 2s forwards;
+        }
+
+        @keyframes fadeInHint {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Finalna scena */
+        .final-scene {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            animation: fadeIn 2s ease-in;
+        }
+
+        .final-scene.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .final-content {
+            position: relative;
+            z-index: 102;
+            text-align: center;
+        }
+
+        .final-message {
+            font-family: 'Satisfy', cursive;
+            font-size: clamp(2rem, 6vw, 4rem);
+            color: #fff;
+            text-shadow: 
+                3px 3px 0px #ff1493,
+                6px 6px 0px #ff69b4,
+                9px 9px 30px rgba(255, 20, 147, 0.8);
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+            background: rgba(255, 105, 180, 0.3);
+            padding: 30px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .final-gif {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.4;
+            z-index: 101;
+            filter: brightness(0.8);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Floating hearts */
+        .heart {
+            position: fixed;
+            font-size: 30px;
+            animation: floatHeart 6s linear infinite;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Główna scena z pytaniem -->
+    <div class="container" id="question-scene">
+        <div class="question">Będzieszm mojom walentynkooom????🥺🥺🥺</div>
+        <div class="buttons-container">
+            <button id="yes-btn">Tak</button>
+            <button id="no-btn">Nie</button>
+        </div>
+    </div>
+
+    <!-- Scena z GIF-em -->
+    <div class="gif-container" id="gif-scene">
+        <img src="/images/6ff759ee0532e71b88636ce1c1f348fe.gif" alt="❤️" id="celebration-gif">
+        <div class="skip-hint">Kliknij, aby pominąć ✨</div>
+    </div>
+
+    <!-- Finalna scena -->
+    <div class="final-scene" id="final-scene">
+        <img src="/images/d440a101bebeb5e4687344c553724c56.gif" alt="💕" class="final-gif" id="final-gif">
+        <div class="final-content">
+            <div class="final-message">
+            jeeeeej! 💕 <br>
+            kiedyś kupię ci taki irl, obiecuję!🤞🤞🤞
+        </div>
+        </div>
+    </div>
+
+    <script>
+        // Stan aplikacji
+        let noClickCount = 0;
+        let gifTimeout = null;
+        
+        const yesBtn = document.getElementById('yes-btn');
+        const noBtn = document.getElementById('no-btn');
+        const questionScene = document.getElementById('question-scene');
+        const gifScene = document.getElementById('gif-scene');
+        const finalScene = document.getElementById('final-scene');
+        const background = document.querySelector('.background');
+        const celebrationGif = document.getElementById('celebration-gif');
+        const finalGif = document.getElementById('final-gif');
+
+        // Konfetti
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Confetti {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = -10;
+                this.size = Math.random() * 8 + 5;
+                this.speedY = Math.random() * 3 + 2;
+                this.speedX = Math.random() * 2 - 1;
+                this.color = ['#ff1493', '#ff69b4', '#ffd700', '#ff6347', '#ff1493'][Math.floor(Math.random() * 5)];
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 10 - 5;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+                
+                if (this.y > canvas.height) {
+                    this.y = -10;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        let confettiArray = [];
+        let animateConfetti = false;
+
+        function createConfetti() {
+            confettiArray = [];
+            for (let i = 0; i < 150; i++) {
+                confettiArray.push(new Confetti());
+            }
+        }
+
+        function animateConfettiLoop() {
+            if (!animateConfetti) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confettiArray.forEach(confetti => {
+                confetti.update();
+                confetti.draw();
+            });
+            requestAnimationFrame(animateConfettiLoop);
+        }
+
+        function startConfetti() {
+            animateConfetti = true;
+            createConfetti();
+            animateConfettiLoop();
+        }
+
+        function stopConfetti() {
+            animateConfetti = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Floating hearts
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.textContent = '💕';
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            heart.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 8000);
+        }
+
+        // Funkcja przejścia do finałowej sceny
+        function showFinalScene() {
+            if (gifTimeout) {
+                clearTimeout(gifTimeout);
+            }
+            
+            gifScene.classList.remove('active');
+            stopConfetti();
+            background.classList.add('clear');
+            finalScene.classList.add('active');
+            
+            // Uruchom drugi GIF
+            const finalGifSrc = finalGif.src;
+            finalGif.src = '';
+            setTimeout(() => {
+                finalGif.src = finalGifSrc;
+            }, 100);
+            
+            // Dodaj więcej serc
+            setInterval(createHeart, 500);
+        }
+
+        // Przycisk NIE - zmniejszanie
+        noBtn.addEventListener('click', () => {
+            noClickCount++;
+            
+            const noScale = Math.max(0, 1 - (noClickCount * 0.15));
+            const yesScale = 1 + (noClickCount * 0.15);
+            
+            noBtn.style.transform = `scale(${noScale})`;
+            yesBtn.style.transform = `scale(${yesScale})`;
+            
+            if (noScale <= 0.1) {
+                noBtn.style.display = 'none';
+            }
+
+            // Dodaj serduszko
+            createHeart();
+        });
+
+        // Przycisk TAK
+        yesBtn.addEventListener('click', () => {
+            questionScene.style.display = 'none';
+            gifScene.classList.add('active');
+            startConfetti();
+            
+            // Auto-ukryj GIF po 6 sekundach
+            gifTimeout = setTimeout(() => {
+                showFinalScene();
+            }, 6000);
+        });
+
+        // Kliknięcie w GIF - natychmiastowe pominięcie
+        gifScene.addEventListener('click', () => {
+            showFinalScene();
+        });
+
+        // Początkowe serduszka
+        setInterval(createHeart, 2000);
+    </script>
+</body>
+</html>
